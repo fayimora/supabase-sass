@@ -1,13 +1,17 @@
-import { GetStaticPaths } from 'next'
+import { GetStaticPaths, GetStaticProps, NextPage } from 'next'
+import { ParsedUrlQuery } from 'querystring'
 import React from 'react'
-import { Lesson } from '.'
-import { supabase } from '../lib/supabase'
+import { fetchLessonById, fetchLessonIds } from '../lib/supabase'
+import { Lesson } from '../lib/types'
 
 type Props = {
   lesson: Lesson
 }
+interface Params extends ParsedUrlQuery {
+  id: string
+}
 
-export default function LessonDetails({ lesson }: Props) {
+const LessonDetails: NextPage<Props> = ({ lesson }) => {
   return (
     <div className="mx-auto w-full max-w-3xl py-16 px-8">
       <h1 className="mb-6 text-3xl">{lesson.title}</h1>
@@ -16,10 +20,21 @@ export default function LessonDetails({ lesson }: Props) {
   )
 }
 
-export async function getStaticPaths() {
-  const { data: lessons } = await supabase.from('lessons').select('id')
+export const getStaticProps: GetStaticProps<Props, Params> = async (ctx) => {
+  const { id } = ctx.params!
+  const lesson = await fetchLessonById(id)
 
-  const paths = lessons?.map(({ id }) => ({
+  return {
+    props: {
+      lesson,
+    },
+  }
+}
+
+export const getStaticPaths: GetStaticPaths<Params> = async () => {
+  const lessonIds = await fetchLessonIds()
+
+  const paths = lessonIds.map((id) => ({
     params: {
       id: id.toString(),
     },
@@ -31,16 +46,4 @@ export async function getStaticPaths() {
   }
 }
 
-export async function getStaticProps({ params: { id } }) {
-  const { data: lesson } = await supabase
-    .from('lessons')
-    .select('*')
-    .eq('id', id)
-    .single()
-
-  return {
-    props: {
-      lesson,
-    },
-  }
-}
+export default LessonDetails

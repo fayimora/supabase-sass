@@ -1,21 +1,16 @@
-import { GetStaticProps } from 'next'
+import { GetStaticProps, NextPage } from 'next'
 import Link from 'next/link'
-import { supabase } from '../lib/supabase'
-
-export type Lesson = {
-  id: number
-  title: string
-  description: string
-}
+import { fetchLessons, supabase } from '../lib/supabase'
+import { Lesson } from '../lib/types'
 
 type Props = {
   lessons: Lesson[]
 }
 
-export default function Home({ lessons }: Props) {
+const Home: NextPage<Props> = ({ lessons }) => {
   return (
     <div className="mx-auto my-16 w-full max-w-3xl px-2">
-      <h1>Working...</h1>
+      <h1 className="mb-4 text-2xl">Lessons</h1>
       {lessons.map((lesson) => {
         return (
           <Link key={lesson.id} href={`/${lesson.id}`}>
@@ -29,8 +24,8 @@ export default function Home({ lessons }: Props) {
   )
 }
 
-export const getStaticProps: GetStaticProps = async (ctx) => {
-  const { data: lessons } = await supabase.from('lessons').select('*')
+export const getStaticProps: GetStaticProps = async () => {
+  const lessons = await fetchLessons()
 
   return {
     props: {
@@ -38,3 +33,5 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     },
   }
 }
+
+export default Home
