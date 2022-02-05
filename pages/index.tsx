@@ -1,6 +1,6 @@
 import { GetStaticProps, NextPage } from 'next'
 import Link from 'next/link'
-import { fetchLessons, supabase } from '../lib/supabase'
+import { getCurrentUser, fetchLessons } from '../lib/supabase'
 import { Lesson } from '../lib/types'
 
 type Props = {
@@ -8,9 +8,13 @@ type Props = {
 }
 
 const Home: NextPage<Props> = ({ lessons }) => {
+  const user = getCurrentUser()
+  const userName = user?.user_metadata.full_name
+
   return (
     <div className="mx-auto my-16 w-full max-w-3xl px-2">
       <h1 className="mb-4 text-2xl">Lessons</h1>
+      {userName && <h3>{userName + ' is logged in'}</h3>}
       {lessons.map((lesson) => {
         return (
           <Link key={lesson.id} href={`/${lesson.id}`}>
